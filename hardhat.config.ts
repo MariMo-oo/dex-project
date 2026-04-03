@@ -40,4 +40,9 @@ export default defineConfig({
       accounts: [`0x${PRIVATE_KEY}`], 
     },
   },
+  verify: {
+    etherscan: {
+      apiKey: ETHERSCAN_KEY,
+    },
+  }
 });

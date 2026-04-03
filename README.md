@@ -4,6 +4,9 @@ This project showcases a Hardhat 3 Beta project using `mocha` for tests and the 
 
 To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
 
+## Live URL
+[Live project URL deployed on vercel](https://dex-project-mauve.vercel.app/)
+
 ## Project Overview
 
 This example project includes:
