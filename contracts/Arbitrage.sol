@@ -156,7 +156,12 @@ contract Arbitrage {
         );
 
         // ── Step 1: Compare prices ──────────────────────────────────
-        (, , bool discrepancy) = comparePrices();
+        (,, bool discrepancy) = comparePrices();
+
+        if (!discrepancy) {
+            emit ArbitrageSkipped("Prices are equal on both DEXes", 0, 0);
+            revert("Arbitrage: no price discrepancy");
+        }
 
         // ── Step 2: Simulate both directions ───────────────────────
         (int256 profit1, int256 profit2, uint8 bestDir) = simulateBothDirections(amountIn);

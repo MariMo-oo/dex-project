@@ -1,1038 +1,929 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>MiniDEX — Decentralized Exchange</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<title>DEX Interface</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=GeistMono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
 <style>
-/* ── TOKENS ─────────────────────────────────────────────────────── */
-:root,[data-theme="light"]{
-  --text-xs:clamp(.75rem,.7rem + .25vw,.875rem);
-  --text-sm:clamp(.875rem,.8rem + .35vw,1rem);
-  --text-base:clamp(1rem,.95rem + .25vw,1.125rem);
-  --text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);
-  --text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);
-  --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;
-  --space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;
-  --space-12:3rem;--space-16:4rem;
-  --color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9;
-  --color-surface-offset:#f3f0ec;--color-surface-dynamic:#e6e4df;
-  --color-divider:#dcd9d5;--color-border:#d4d1ca;
-  --color-text:#28251d;--color-text-muted:#7a7974;--color-text-faint:#bab9b4;
-  --color-text-inverse:#f9f8f4;
-  --color-primary:#01696f;--color-primary-hover:#0c4e54;--color-primary-active:#0f3638;
-  --color-primary-highlight:#cedcd8;
-  --color-success:#437a22;--color-success-highlight:#d4dfcc;
-  --color-error:#a12c7b;--color-error-highlight:#e0ced7;
-  --color-warning:#964219;--color-warning-highlight:#ddcfc6;
-  --color-blue:#006494;--color-blue-highlight:#c6d8e4;
-  --radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;--radius-xl:1rem;--radius-full:9999px;
-  --transition:180ms cubic-bezier(.16,1,.3,1);
-  --shadow-sm:0 1px 2px oklch(.2 .01 80/.06);
-  --shadow-md:0 4px 12px oklch(.2 .01 80/.08);
-  --shadow-lg:0 12px 32px oklch(.2 .01 80/.12);
+:root,[data-theme="dark"]{
+  --color-bg:#0d0d0f;
+  --color-surface:#131316;
+  --color-surface-2:#18181c;
+  --color-surface-offset:#1e1e23;
+  --color-border:rgba(255,255,255,0.07);
+  --color-divider:rgba(255,255,255,0.05);
+  --color-text:#e8e8ea;
+  --color-text-muted:#7a7a85;
+  --color-text-faint:#3a3a42;
+  --color-primary:#7c6af7;
+  --color-primary-hover:#6b58f0;
+  --color-primary-active:#5a47e0;
+  --color-primary-glow:rgba(124,106,247,0.15);
+  --color-success:#34d399;
+  --color-success-bg:rgba(52,211,153,0.08);
+  --color-error:#f87171;
+  --color-error-bg:rgba(248,113,113,0.08);
+  --color-warning:#fbbf24;
+  --color-warning-bg:rgba(251,191,36,0.08);
+  --color-tka:#60a5fa;
+  --color-tkb:#a78bfa;
   --font-body:'Geist','Inter',sans-serif;
-  --font-mono:'Geist Mono','Fira Code',monospace;
-  --content-default:960px;
+  --font-mono:'GeistMono','JetBrains Mono',monospace;
+  --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:18px;--radius-full:9999px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.5);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.6);
+  --transition:180ms cubic-bezier(0.16,1,0.3,1);
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;
+  --space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;
+  --text-xs:clamp(0.7rem,0.65rem+0.2vw,0.8rem);
+  --text-sm:clamp(0.8rem,0.75rem+0.25vw,0.9rem);
+  --text-base:clamp(0.9rem,0.85rem+0.25vw,1rem);
+  --text-lg:clamp(1rem,0.9rem+0.5vw,1.2rem);
+  --text-xl:clamp(1.1rem,1rem+0.6vw,1.4rem);
 }
-[data-theme="dark"]{
-  --color-bg:#171614;--color-surface:#1c1b19;--color-surface-2:#201f1d;
-  --color-surface-offset:#1d1c1a;--color-surface-dynamic:#2d2c2a;
-  --color-divider:#262523;--color-border:#393836;
-  --color-text:#cdccca;--color-text-muted:#797876;--color-text-faint:#5a5957;
-  --color-text-inverse:#2b2a28;
-  --color-primary:#4f98a3;--color-primary-hover:#227f8b;--color-primary-active:#1a626b;
-  --color-primary-highlight:#313b3b;
-  --color-success:#6daa45;--color-success-highlight:#3a4435;
-  --color-error:#d163a7;--color-error-highlight:#4c3d46;
-  --color-warning:#bb653b;--color-warning-highlight:#564942;
-  --color-blue:#5591c7;--color-blue-highlight:#3a4550;
-  --shadow-sm:0 1px 2px oklch(0 0 0/.2);
-  --shadow-md:0 4px 12px oklch(0 0 0/.3);
-  --shadow-lg:0 12px 32px oklch(0 0 0/.4);
+[data-theme="light"]{
+  --color-bg:#f5f5f7;--color-surface:#ffffff;--color-surface-2:#f9f9fb;
+  --color-surface-offset:#f0f0f4;--color-border:rgba(0,0,0,0.08);
+  --color-divider:rgba(0,0,0,0.05);--color-text:#1a1a1f;
+  --color-text-muted:#6b6b78;--color-text-faint:#c0c0cc;
+  --color-primary:#6254e8;--color-primary-hover:#5244d4;
+  --color-primary-active:#4234c0;--color-primary-glow:rgba(98,84,232,0.12);
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.1);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.15);
 }
-@media(prefers-color-scheme:dark){:root:not([data-theme]){
-  --color-bg:#171614;--color-surface:#1c1b19;--color-surface-2:#201f1d;
-  --color-surface-offset:#1d1c1a;--color-surface-dynamic:#2d2c2a;
-  --color-divider:#262523;--color-border:#393836;
-  --color-text:#cdccca;--color-text-muted:#797876;--color-text-faint:#5a5957;
-  --color-text-inverse:#2b2a28;
-  --color-primary:#4f98a3;--color-primary-hover:#227f8b;--color-primary-active:#1a626b;
-  --color-primary-highlight:#313b3b;
-  --color-success:#6daa45;--color-success-highlight:#3a4435;
-  --color-error:#d163a7;--color-error-highlight:#4c3d46;
-  --color-warning:#bb653b;--color-warning-highlight:#564942;
-  --color-blue:#5591c7;--color-blue-highlight:#3a4550;
-  --shadow-sm:0 1px 2px oklch(0 0 0/.2);
-  --shadow-md:0 4px 12px oklch(0 0 0/.3);
-  --shadow-lg:0 12px 32px oklch(0 0 0/.4);
-}}
-/* ── RESET ───────────────────────────────────────────────────────── */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scroll-behavior:smooth}
-body{min-height:100dvh;font-family:var(--font-body);font-size:var(--text-base);color:var(--color-text);background:var(--color-bg);line-height:1.6}
-button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
-input,select{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--color-primary);outline-offset:3px;border-radius:var(--radius-sm)}
-a,button,[role="button"],input,select{transition:color var(--transition),background var(--transition),border-color var(--transition),box-shadow var(--transition),opacity var(--transition)}
-::selection{background:oklch(from var(--color-primary) l c h/.25);color:var(--color-text)}
-/* ── LAYOUT ──────────────────────────────────────────────────────── */
-.app{display:grid;grid-template-rows:auto 1fr;min-height:100dvh}
-header{position:sticky;top:0;z-index:100;background:color-mix(in oklab,var(--color-surface) 90%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--color-divider)}
-.header-inner{max-width:var(--content-default);margin:0 auto;padding:var(--space-3) var(--space-6);display:flex;align-items:center;justify-content:space-between;gap:var(--space-4)}
-main{max-width:var(--content-default);margin:0 auto;padding:var(--space-8) var(--space-6);width:100%}
-/* ── LOGO ────────────────────────────────────────────────────────── */
-.logo{display:flex;align-items:center;gap:var(--space-2);font-weight:600;font-size:var(--text-base);color:var(--color-text);text-decoration:none}
-.logo svg{color:var(--color-primary)}
-/* ── HEADER ACTIONS ──────────────────────────────────────────────── */
-.header-actions{display:flex;align-items:center;gap:var(--space-3)}
-.btn-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--radius-md);color:var(--color-text-muted);border:1px solid var(--color-border)}
-.btn-icon:hover{background:var(--color-surface-offset);color:var(--color-text)}
-/* ── WALLET BUTTON ───────────────────────────────────────────────── */
-.btn-wallet{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);border-radius:var(--radius-full);font-size:var(--text-sm);font-weight:500;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text)}
-.btn-wallet:hover{background:var(--color-surface-offset);border-color:var(--color-primary)}
-.btn-wallet.connected{border-color:var(--color-primary);background:var(--color-primary-highlight);color:var(--color-primary)}
-.wallet-dot{width:8px;height:8px;border-radius:var(--radius-full);background:var(--color-text-faint);flex-shrink:0;transition:background var(--transition)}
-.btn-wallet.connected .wallet-dot{background:var(--color-success)}
-/* ── NETWORK BADGE ───────────────────────────────────────────────── */
-.network-badge{display:none;align-items:center;gap:var(--space-1);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:500;background:var(--color-blue-highlight);color:var(--color-blue)}
-.network-badge.show{display:flex}
-/* ── TABS ────────────────────────────────────────────────────────── */
-.tabs{display:flex;gap:var(--space-1);background:var(--color-surface-offset);border-radius:var(--radius-lg);padding:var(--space-1);width:fit-content;margin-bottom:var(--space-8)}
-.tab{padding:var(--space-2) var(--space-5);border-radius:var(--radius-md);font-size:var(--text-sm);font-weight:500;color:var(--color-text-muted)}
-.tab:hover{color:var(--color-text)}
-.tab.active{background:var(--color-surface);color:var(--color-text);box-shadow:var(--shadow-sm)}
-/* ── PANEL ───────────────────────────────────────────────────────── */
-.panel-grid{display:grid;grid-template-columns:1fr 380px;gap:var(--space-6);align-items:start}
-@media(max-width:768px){.panel-grid{grid-template-columns:1fr}}
-.card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-6);box-shadow:var(--shadow-sm)}
-.card-title{font-size:var(--text-base);font-weight:600;margin-bottom:var(--space-5);display:flex;align-items:center;gap:var(--space-2);color:var(--color-text)}
-.card-title svg{color:var(--color-primary)}
-/* ── POOL STATS ──────────────────────────────────────────────────── */
-.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-3)}
-.stat-card{background:var(--color-surface-offset);border-radius:var(--radius-lg);padding:var(--space-4)}
-.stat-label{font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:var(--space-1);text-transform:uppercase;letter-spacing:.04em}
-.stat-value{font-size:var(--text-lg);font-weight:600;font-family:var(--font-mono);color:var(--color-text);font-variant-numeric:tabular-nums}
-.stat-sub{font-size:var(--text-xs);color:var(--color-text-faint);margin-top:2px}
-/* ── FORM ────────────────────────────────────────────────────────── */
-.field{margin-bottom:var(--space-4)}
-.field label{display:block;font-size:var(--text-sm);font-weight:500;color:var(--color-text-muted);margin-bottom:var(--space-2)}
-.input-wrap{position:relative}
-.input-wrap .token-badge{position:absolute;right:var(--space-3);top:50%;transform:translateY(-50%);font-size:var(--text-xs);font-weight:600;padding:var(--space-1) var(--space-2);border-radius:var(--radius-full);background:var(--color-primary-highlight);color:var(--color-primary)}
-input[type="text"],input[type="number"]{width:100%;padding:var(--space-3) var(--space-4);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface-2);font-size:var(--text-base);color:var(--color-text);outline:none}
-input[type="text"]:focus,input[type="number"]:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 15%,transparent)}
-.input-with-badge input{padding-right:4.5rem}
-/* ── BUTTONS ─────────────────────────────────────────────────────── */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);padding:var(--space-3) var(--space-5);border-radius:var(--radius-md);font-size:var(--text-sm);font-weight:500;cursor:pointer;transition:all var(--transition)}
-.btn-primary{background:var(--color-primary);color:var(--color-text-inverse);border:none;width:100%}
-.btn-primary:hover{background:var(--color-primary-hover)}
-.btn-primary:active{background:var(--color-primary-active)}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.btn-secondary{background:var(--color-surface-offset);color:var(--color-text);border:1px solid var(--color-border);width:100%}
-.btn-secondary:hover{background:var(--color-surface-dynamic)}
-/* ── SWAP ARROW ──────────────────────────────────────────────────── */
-.swap-arrow{display:flex;justify-content:center;margin:var(--space-2) 0}
-.swap-arrow button{width:36px;height:36px;border-radius:var(--radius-full);border:1px solid var(--color-border);background:var(--color-surface-offset);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted)}
-.swap-arrow button:hover{background:var(--color-surface-dynamic);color:var(--color-primary);transform:rotate(180deg)}
-/* ── EXPECTED OUT ────────────────────────────────────────────────── */
-.expected-out{background:var(--color-surface-offset);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);margin-bottom:var(--space-4);font-size:var(--text-sm)}
-.expected-row{display:flex;justify-content:space-between;align-items:center;color:var(--color-text-muted)}
-.expected-row + .expected-row{margin-top:var(--space-2)}
-.expected-row .val{font-family:var(--font-mono);color:var(--color-text);font-weight:500;font-variant-numeric:tabular-nums}
-/* ── LP SHARES TABLE ─────────────────────────────────────────────── */
-.lp-table{width:100%;border-collapse:collapse;font-size:var(--text-sm)}
-.lp-table th{text-align:left;padding:var(--space-2) var(--space-3);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-faint);border-bottom:1px solid var(--color-divider)}
-.lp-table td{padding:var(--space-3);border-bottom:1px solid var(--color-divider);font-variant-numeric:tabular-nums}
-.lp-table tr:last-child td{border-bottom:none}
-.lp-table .mono{font-family:var(--font-mono);color:var(--color-text)}
-/* ── TOAST ───────────────────────────────────────────────────────── */
-#toast-container{position:fixed;bottom:var(--space-6);right:var(--space-6);z-index:1000;display:flex;flex-direction:column;gap:var(--space-2);max-width:340px}
-.toast{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);box-shadow:var(--shadow-lg);font-size:var(--text-sm);display:flex;align-items:flex-start;gap:var(--space-3);animation:slideIn .25s ease}
-.toast.success{border-color:var(--color-success);background:var(--color-success-highlight)}
-.toast.error{border-color:var(--color-error);background:var(--color-error-highlight)}
-.toast.warning{border-color:var(--color-warning);background:var(--color-warning-highlight)}
-.toast-icon{flex-shrink:0;margin-top:1px}
-.toast.success .toast-icon{color:var(--color-success)}
-.toast.error .toast-icon{color:var(--color-error)}
-.toast.warning .toast-icon{color:var(--color-warning)}
-@keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
-/* ── CONFIG PANEL ────────────────────────────────────────────────── */
-.config-section{margin-bottom:var(--space-6)}
-.config-section h3{font-size:var(--text-sm);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--space-3)}
-.addr-row{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)}
-.addr-label{font-size:var(--text-xs);color:var(--color-text-muted);width:72px;flex-shrink:0}
-.addr-input{flex:1;padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface-2);font-size:var(--text-xs);font-family:var(--font-mono);color:var(--color-text)}
-.addr-input:focus{border-color:var(--color-primary);outline:none}
-/* ── TX HISTORY ──────────────────────────────────────────────────── */
-.tx-list{display:flex;flex-direction:column;gap:var(--space-2);max-height:280px;overflow-y:auto}
-.tx-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3);background:var(--color-surface-offset);border-radius:var(--radius-md)}
-.tx-badge{font-size:var(--text-xs);font-weight:600;padding:2px var(--space-2);border-radius:var(--radius-full)}
-.tx-badge.swap{background:var(--color-blue-highlight);color:var(--color-blue)}
-.tx-badge.add{background:var(--color-success-highlight);color:var(--color-success)}
-.tx-badge.remove{background:var(--color-warning-highlight);color:var(--color-warning)}
-.tx-detail{flex:1;font-size:var(--text-xs);color:var(--color-text-muted)}
-.tx-time{font-size:var(--text-xs);color:var(--color-text-faint);font-family:var(--font-mono)}
-/* ── EMPTY STATE ─────────────────────────────────────────────────── */
-.empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:var(--space-10) var(--space-6);color:var(--color-text-muted)}
-.empty svg{color:var(--color-text-faint);margin-bottom:var(--space-3)}
-.empty p{font-size:var(--text-sm);max-width:28ch}
-/* ── LOADING OVERLAY ─────────────────────────────────────────────── */
-.spinner{width:18px;height:18px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-/* ── SECTION VIEWS ───────────────────────────────────────────────── */
-.view{display:none}.view.active{display:block}
-/* ── SPOT PRICE HIGHLIGHT ────────────────────────────────────────── */
-.price-highlight{display:inline-flex;align-items:center;gap:var(--space-2);font-size:var(--text-sm);color:var(--color-text-muted);background:var(--color-surface-offset);padding:var(--space-2) var(--space-3);border-radius:var(--radius-full);margin-bottom:var(--space-4)}
-.price-highlight strong{font-family:var(--font-mono);color:var(--color-text);font-variant-numeric:tabular-nums}
-/* ── DIVIDER ─────────────────────────────────────────────────────── */
-hr{border:none;border-top:1px solid var(--color-divider);margin:var(--space-5) 0}
-/* ── RESPONSIVE ──────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
+body{font-family:var(--font-body);font-size:var(--text-base);color:var(--color-text);background:var(--color-bg);min-height:100dvh;line-height:1.6;}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
+input{font:inherit;color:inherit;}
+a{color:inherit;text-decoration:none;}
+
+/* Layout */
+.app{display:grid;grid-template-rows:56px 1fr;min-height:100dvh;}
+
+/* Header */
+header{display:flex;align-items:center;justify-content:space-between;padding:0 var(--space-6);border-bottom:1px solid var(--color-border);background:var(--color-surface);position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:var(--space-3);font-weight:600;font-size:var(--text-lg);}
+.logo-mark{width:28px;height:28px;}
+.header-right{display:flex;align-items:center;gap:var(--space-3);}
+.network-badge{display:flex;align-items:center;gap:6px;font-size:var(--text-xs);font-family:var(--font-mono);padding:4px 10px;border-radius:var(--radius-full);background:var(--color-success-bg);color:var(--color-success);border:1px solid rgba(52,211,153,0.2);}
+.network-dot{width:6px;height:6px;border-radius:50%;background:var(--color-success);box-shadow:0 0 6px var(--color-success);}
+.btn-connect{padding:6px 16px;border-radius:var(--radius-full);background:var(--color-primary);color:#fff;font-size:var(--text-sm);font-weight:500;transition:background var(--transition),box-shadow var(--transition);}
+.btn-connect:hover{background:var(--color-primary-hover);box-shadow:0 0 20px var(--color-primary-glow);}
+.btn-connect.connected{background:var(--color-surface-offset);color:var(--color-text);border:1px solid var(--color-border);font-family:var(--font-mono);font-size:11px;}
+.theme-toggle{width:32px;height:32px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);border:1px solid var(--color-border);transition:all var(--transition);}
+.theme-toggle:hover{color:var(--color-text);background:var(--color-surface-offset);}
+
+/* Main */
+main{display:grid;grid-template-columns:1fr min(480px,100%) 1fr;padding:var(--space-8) var(--space-4);}
+.center-col{grid-column:2;display:flex;flex-direction:column;gap:var(--space-6);}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:3px;}
+.tab{flex:1;padding:8px var(--space-4);border-radius:calc(var(--radius-lg) - 3px);font-size:var(--text-sm);font-weight:500;color:var(--color-text-muted);transition:all var(--transition);text-align:center;}
+.tab:hover{color:var(--color-text);}
+.tab.active{background:var(--color-surface-offset);color:var(--color-text);box-shadow:var(--shadow-sm);}
+
+/* Cards */
+.card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-6);box-shadow:var(--shadow-sm);}
+.card-title{font-size:var(--text-sm);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:var(--space-5);}
+
+/* Pool stats */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);}
+.stat-box{background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);}
+.stat-label{font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:4px;font-weight:500;}
+.stat-value{font-size:var(--text-lg);font-weight:600;font-family:var(--font-mono);}
+.stat-value.tka{color:var(--color-tka);}
+.stat-value.tkb{color:var(--color-tkb);}
+.stat-value.price{color:var(--color-primary);}
+.stat-value.tvl{color:var(--color-success);}
+.stat-full{grid-column:1/-1;}
+
+/* Token input */
+.token-input-wrap{background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);transition:border-color var(--transition);}
+.token-input-wrap:focus-within{border-color:var(--color-primary);}
+.token-input-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);}
+.token-label{font-size:var(--text-xs);color:var(--color-text-muted);font-weight:500;}
+.token-balance{font-size:var(--text-xs);color:var(--color-text-muted);font-family:var(--font-mono);}
+.token-balance span{color:var(--color-text);cursor:pointer;}
+.token-balance span:hover{color:var(--color-primary);}
+.token-input-row{display:flex;align-items:center;gap:var(--space-3);}
+.token-input{flex:1;background:none;border:none;outline:none;font-size:var(--text-xl);font-weight:600;font-family:var(--font-mono);color:var(--color-text);width:0;}
+.token-input::placeholder{color:var(--color-text-faint);}
+.token-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-full);font-size:var(--text-sm);font-weight:600;white-space:nowrap;flex-shrink:0;}
+.token-badge.tka{background:rgba(96,165,250,0.12);color:var(--color-tka);border:1px solid rgba(96,165,250,0.2);}
+.token-badge.tkb{background:rgba(167,139,250,0.12);color:var(--color-tkb);border:1px solid rgba(167,139,250,0.2);}
+.token-dot{width:8px;height:8px;border-radius:50%;}
+.tka .token-dot{background:var(--color-tka);}
+.tkb .token-dot{background:var(--color-tkb);}
+
+/* Swap arrow */
+.swap-arrow-wrap{display:flex;justify-content:center;margin:var(--space-2) 0;}
+.swap-arrow{width:32px;height:32px;border-radius:var(--radius-md);border:1px solid var(--color-border);background:var(--color-surface-offset);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);transition:all var(--transition);}
+.swap-arrow:hover{color:var(--color-primary);border-color:var(--color-primary);background:var(--color-primary-glow);}
+
+/* Info row */
+.info-row{display:flex;justify-content:space-between;align-items:center;font-size:var(--text-xs);color:var(--color-text-muted);padding:var(--space-2) 0;}
+.info-row+.info-row{border-top:1px solid var(--color-divider);}
+.info-val{font-family:var(--font-mono);color:var(--color-text);}
+.info-val.good{color:var(--color-success);}
+.info-val.warn{color:var(--color-warning);}
+.info-val.bad{color:var(--color-error);}
+
+/* Primary button */
+.btn-primary{width:100%;padding:14px;border-radius:var(--radius-lg);background:var(--color-primary);color:#fff;font-size:var(--text-base);font-weight:600;transition:all var(--transition);margin-top:var(--space-4);}
+.btn-primary:hover:not(:disabled){background:var(--color-primary-hover);box-shadow:0 0 30px var(--color-primary-glow);}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-secondary{width:100%;padding:12px;border-radius:var(--radius-lg);background:var(--color-surface-offset);color:var(--color-text);font-size:var(--text-base);font-weight:500;border:1px solid var(--color-border);transition:all var(--transition);margin-top:var(--space-3);}
+.btn-secondary:hover:not(:disabled){background:var(--color-surface-2);border-color:var(--color-primary);}
+.btn-secondary:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* Section gap */
+.section-gap{height:var(--space-4);}
+.divider{height:1px;background:var(--color-divider);margin:var(--space-4) 0;}
+
+/* Address chip */
+.address-chip{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-text-muted);background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-full);padding:3px 10px;display:inline-flex;align-items:center;gap:6px;}
+.address-chip a{color:var(--color-primary);}
+.address-chip a:hover{text-decoration:underline;}
+
+/* Contract table */
+.contract-table{width:100%;border-collapse:collapse;font-size:var(--text-xs);}
+.contract-table th{text-align:left;color:var(--color-text-muted);font-weight:500;padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--color-border);}
+.contract-table td{padding:var(--space-3);border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);vertical-align:middle;}
+.contract-table td:first-child{font-family:var(--font-body);font-weight:500;color:var(--color-text);white-space:nowrap;}
+.contract-table td a{color:var(--color-primary);text-decoration:none;}
+.contract-table td a:hover{text-decoration:underline;}
+.addr-short{display:inline;}
+
+/* Toast */
+#toast-wrap{position:fixed;bottom:var(--space-6);right:var(--space-6);display:flex;flex-direction:column;gap:var(--space-2);z-index:999;}
+.toast{padding:12px 16px;border-radius:var(--radius-lg);font-size:var(--text-sm);font-weight:500;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:var(--space-3);animation:slideIn 0.2s ease;max-width:320px;}
+.toast.success{background:#1a2e24;color:var(--color-success);border:1px solid rgba(52,211,153,0.2);}
+.toast.error{background:#2e1a1a;color:var(--color-error);border:1px solid rgba(248,113,113,0.2);}
+.toast.info{background:#1a1a2e;color:#a5b4fc;border:1px solid rgba(165,180,252,0.2);}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+
+/* Loading spinner */
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Tx history */
+.tx-list{display:flex;flex-direction:column;gap:var(--space-2);max-height:200px;overflow-y:auto;}
+.tx-item{display:flex;justify-content:space-between;align-items:center;padding:var(--space-3);background:var(--color-surface-offset);border-radius:var(--radius-md);font-size:var(--text-xs);}
+.tx-type{font-weight:600;color:var(--color-primary);}
+.tx-link{color:var(--color-text-muted);}
+.tx-link:hover{color:var(--color-primary);}
+
+/* LP bar */
+.lp-bar-wrap{background:var(--color-surface-offset);border-radius:var(--radius-full);height:8px;overflow:hidden;margin-top:var(--space-2);}
+.lp-bar{height:100%;background:linear-gradient(90deg,var(--color-primary),var(--color-tkb));border-radius:var(--radius-full);transition:width 0.4s ease;}
+
+/* Tab content */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* Empty state */
+.empty{text-align:center;padding:var(--space-10) var(--space-4);color:var(--color-text-muted);}
+.empty svg{margin:0 auto var(--space-4);opacity:0.3;}
+
+/* Responsive */
 @media(max-width:600px){
-  main{padding:var(--space-6) var(--space-4)}
-  .header-inner{padding:var(--space-3) var(--space-4)}
-  .tabs{flex-wrap:wrap}
-  .stats-grid{grid-template-columns:1fr 1fr}
+  main{grid-template-columns:1fr;padding:var(--space-4) var(--space-3);}
+  .center-col{grid-column:1;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  header{padding:0 var(--space-4);}
 }
 </style>
 </head>
 <body>
+<div class="app">
 
-<!-- ── HEADER ─────────────────────────────────────────────────────── -->
+<!-- Header -->
 <header>
-  <div class="header-inner">
-    <a class="logo" href="#" aria-label="MiniDEX home">
-      <svg aria-hidden="true" viewBox="0 0 32 32" fill="none" width="28" height="28">
-        <circle cx="10" cy="16" r="8" stroke="currentColor" stroke-width="2.5"/>
-        <circle cx="22" cy="16" r="8" stroke="currentColor" stroke-width="2.5"/>
-        <path d="M14 11l4 5-4 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      MiniDEX
-    </a>
-    <div class="header-actions">
-      <div class="network-badge" id="network-badge">
-        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
-        <span id="network-name">Unknown</span>
-      </div>
-      <button class="btn-icon" data-theme-toggle aria-label="Toggle dark mode">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-      <button class="btn-wallet" id="wallet-btn" onclick="connectWallet()">
-        <span class="wallet-dot"></span>
-        <span id="wallet-label">Connect Wallet</span>
-      </button>
-    </div>
+  <div class="logo">
+    <svg class="logo-mark" viewBox="0 0 28 28" fill="none" aria-label="DEX logo">
+      <circle cx="9" cy="14" r="7" stroke="var(--color-tka)" stroke-width="2"/>
+      <circle cx="19" cy="14" r="7" stroke="var(--color-tkb)" stroke-width="2"/>
+      <path d="M14 8.5 Q16 14 14 19.5 Q12 14 14 8.5Z" fill="var(--color-primary)" opacity="0.8"/>
+    </svg>
+    <span>DEX</span>
+    <div class="network-badge"><div class="network-dot"></div>Sepolia</div>
+  </div>
+  <div class="header-right">
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="btn-connect" id="btn-wallet" onclick="connectWallet()">Connect Wallet</button>
   </div>
 </header>
 
-<!-- ── MAIN ───────────────────────────────────────────────────────── -->
+<!-- Main -->
 <main>
+<div class="center-col">
 
-  <!-- TABS -->
-  <nav class="tabs" role="tablist" aria-label="DEX sections">
-    <button class="tab active" role="tab" aria-selected="true"  onclick="switchTab('swap',this)">Swap</button>
-    <button class="tab"        role="tab" aria-selected="false" onclick="switchTab('liquidity',this)">Liquidity</button>
-    <button class="tab"        role="tab" aria-selected="false" onclick="switchTab('pool',this)">Pool Info</button>
-    <button class="tab"        role="tab" aria-selected="false" onclick="switchTab('config',this)">Setup</button>
-  </nav>
-
-  <!-- ═══════════ SWAP VIEW ═══════════ -->
-  <div id="view-swap" class="view active">
-    <div class="panel-grid">
-      <div>
-        <div class="card">
-          <p class="card-title">
-            <i data-lucide="arrow-left-right" width="16" height="16"></i>
-            Token Swap
-          </p>
-
-          <div id="spot-price-bar" class="price-highlight" style="display:none">
-            <i data-lucide="activity" width="14" height="14"></i>
-            Spot price: <strong id="spot-price-val">–</strong> TKA / TKB &nbsp;|&nbsp; Fee: 0.3%
-          </div>
-
-          <!-- Token In -->
-          <div class="field">
-            <label for="swap-in-amount">You pay</label>
-            <div class="input-wrap input-with-badge">
-              <input type="number" id="swap-in-amount" placeholder="0.00" min="0" step="any" oninput="updateSwapPreview()"/>
-              <span class="token-badge" id="swap-in-badge">TKA</span>
-            </div>
-          </div>
-
-          <!-- Flip -->
-          <div class="swap-arrow">
-            <button onclick="flipSwapDirection()" aria-label="Flip swap direction">
-              <i data-lucide="arrow-down-up" width="16" height="16"></i>
-            </button>
-          </div>
-
-          <!-- Token Out -->
-          <div class="field">
-            <label>You receive (estimated)</label>
-            <div class="input-wrap input-with-badge">
-              <input type="number" id="swap-out-amount" placeholder="0.00" readonly style="background:var(--color-surface-offset);cursor:default"/>
-              <span class="token-badge" id="swap-out-badge">TKB</span>
-            </div>
-          </div>
-
-          <!-- Expected breakdown -->
-          <div class="expected-out" id="swap-breakdown" style="display:none">
-            <div class="expected-row">
-              <span>Expected output</span>
-              <span class="val" id="exp-out">–</span>
-            </div>
-            <div class="expected-row">
-              <span>Price impact</span>
-              <span class="val" id="exp-impact">–</span>
-            </div>
-            <div class="expected-row">
-              <span>Fee (0.3%)</span>
-              <span class="val" id="exp-fee">–</span>
-            </div>
-            <div class="expected-row">
-              <span>Slippage</span>
-              <span class="val" id="exp-slippage">–</span>
-            </div>
-          </div>
-
-          <button class="btn btn-primary" id="swap-btn" onclick="executeSwap()" disabled>
-            <span id="swap-btn-text">Enter an amount</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- TX History -->
-      <div>
-        <div class="card">
-          <p class="card-title"><i data-lucide="clock" width="16" height="16"></i>Recent Transactions</p>
-          <div class="tx-list" id="tx-list">
-            <div class="empty">
-              <i data-lucide="layers" width="32" height="32"></i>
-              <p>Your transactions will appear here</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- Tabs -->
+  <div class="tabs" role="tablist">
+    <button class="tab active" onclick="switchTab('swap',this)" role="tab">Swap</button>
+    <button class="tab" onclick="switchTab('liquidity',this)" role="tab">Liquidity</button>
+    <button class="tab" onclick="switchTab('pool',this)" role="tab">Pool Info</button>
+    <button class="tab" onclick="switchTab('contracts',this)" role="tab">Contracts</button>
   </div>
 
-  <!-- ═══════════ LIQUIDITY VIEW ═══════════ -->
-  <div id="view-liquidity" class="view">
-    <div class="panel-grid">
-      <div>
-        <!-- ADD -->
-        <div class="card" style="margin-bottom:var(--space-6)">
-          <p class="card-title"><i data-lucide="plus-circle" width="16" height="16"></i>Add Liquidity</p>
-          <div class="field">
-            <label for="liq-a">TokenA amount</label>
-            <div class="input-wrap input-with-badge">
-              <input type="number" id="liq-a" placeholder="0.00" min="0" step="any" oninput="updateLiqPreview()"/>
-              <span class="token-badge">TKA</span>
-            </div>
-          </div>
-          <div class="field">
-            <label for="liq-b">TokenB amount</label>
-            <div class="input-wrap input-with-badge">
-              <input type="number" id="liq-b" placeholder="0.00" min="0" step="any" oninput="updateLiqPreview()"/>
-              <span class="token-badge">TKB</span>
-            </div>
-          </div>
-          <div class="expected-out" id="liq-preview" style="display:none">
-            <div class="expected-row">
-              <span>LP tokens you'll receive</span>
-              <span class="val" id="liq-lpt-preview">–</span>
-            </div>
-            <div class="expected-row">
-              <span>Your pool share</span>
-              <span class="val" id="liq-share-preview">–</span>
-            </div>
-          </div>
-          <button class="btn btn-primary" id="add-liq-btn" onclick="addLiquidity()" disabled>
-            <span id="add-liq-btn-text">Enter amounts</span>
-          </button>
-        </div>
-
-        <!-- REMOVE -->
-        <div class="card">
-          <p class="card-title"><i data-lucide="minus-circle" width="16" height="16"></i>Remove Liquidity</p>
-          <div class="field">
-            <label for="rem-lpt">LP tokens to burn</label>
-            <div class="input-wrap input-with-badge">
-              <input type="number" id="rem-lpt" placeholder="0.00" min="0" step="any" oninput="updateRemovePreview()"/>
-              <span class="token-badge">LPT</span>
-            </div>
-          </div>
-          <div class="expected-out" id="rem-preview" style="display:none">
-            <div class="expected-row">
-              <span>You'll receive (TKA)</span>
-              <span class="val" id="rem-a-preview">–</span>
-            </div>
-            <div class="expected-row">
-              <span>You'll receive (TKB)</span>
-              <span class="val" id="rem-b-preview">–</span>
-            </div>
-          </div>
-          <button class="btn btn-primary" id="rem-liq-btn" onclick="removeLiquidity()" disabled>
-            <span id="rem-liq-btn-text">Enter LP token amount</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- LP Holdings -->
-      <div>
-        <div class="card">
-          <p class="card-title"><i data-lucide="user" width="16" height="16"></i>Your LP Position</p>
-          <div class="stats-grid" style="margin-bottom:var(--space-5)">
-            <div class="stat-card">
-              <div class="stat-label">Your LPT Balance</div>
-              <div class="stat-value" id="user-lpt">–</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Pool Share</div>
-              <div class="stat-value" id="user-share">–</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">TKA claimable</div>
-              <div class="stat-value" id="user-claim-a">–</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">TKB claimable</div>
-              <div class="stat-value" id="user-claim-b">–</div>
-            </div>
-          </div>
-          <button class="btn btn-secondary" onclick="refreshPoolData()">
-            <i data-lucide="refresh-cw" width="14" height="14"></i>
-            Refresh
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════ POOL VIEW ═══════════ -->
-  <div id="view-pool" class="view">
-    <div class="stats-grid" style="margin-bottom:var(--space-6)">
-      <div class="stat-card">
-        <div class="stat-label">Reserve A</div>
-        <div class="stat-value" id="stat-reserve-a">–</div>
-        <div class="stat-sub">TKA in pool</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Reserve B</div>
-        <div class="stat-value" id="stat-reserve-b">–</div>
-        <div class="stat-sub">TKB in pool</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Spot Price</div>
-        <div class="stat-value" id="stat-spot">–</div>
-        <div class="stat-sub">TKA per TKB</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total LPT Supply</div>
-        <div class="stat-value" id="stat-lpt-supply">–</div>
-        <div class="stat-sub">outstanding shares</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">TVL (in TKA)</div>
-        <div class="stat-value" id="stat-tvl">–</div>
-        <div class="stat-sub">reserveA + reserveB×price</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">k constant</div>
-        <div class="stat-value" id="stat-k">–</div>
-        <div class="stat-sub">x × y</div>
-      </div>
-    </div>
+  <!-- ── SWAP TAB ── -->
+  <div id="tab-swap" class="tab-content active">
     <div class="card">
-      <p class="card-title"><i data-lucide="users" width="16" height="16"></i>Your Token Balances</p>
+      <div class="card-title">Swap Tokens</div>
+
+      <!-- Direction selector -->
+      <div style="display:flex;gap:8px;margin-bottom:var(--space-4);">
+        <button id="dir-ab" onclick="setDir('AB')" style="flex:1;padding:8px;border-radius:var(--radius-md);border:1px solid var(--color-primary);background:var(--color-primary-glow);color:var(--color-primary);font-size:var(--text-xs);font-weight:600;">TKA → TKB</button>
+        <button id="dir-ba" onclick="setDir('BA')" style="flex:1;padding:8px;border-radius:var(--radius-md);border:1px solid var(--color-border);background:transparent;color:var(--color-text-muted);font-size:var(--text-xs);font-weight:600;">TKB → TKA</button>
+      </div>
+
+      <div class="token-input-wrap">
+        <div class="token-input-header">
+          <span class="token-label">You Pay</span>
+          <span class="token-balance">Balance: <span id="bal-in" onclick="setMaxIn()">—</span></span>
+        </div>
+        <div class="token-input-row">
+          <input class="token-input" id="swap-in" type="number" min="0" placeholder="0.0" oninput="calcSwapOut()"/>
+          <div class="token-badge tka" id="badge-in"><div class="token-dot"></div><span id="label-in">TKA</span></div>
+        </div>
+      </div>
+
+      <div class="swap-arrow-wrap">
+        <button class="swap-arrow" onclick="flipDir()" aria-label="Flip direction">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+        </button>
+      </div>
+
+      <div class="token-input-wrap">
+        <div class="token-input-header">
+          <span class="token-label">You Receive</span>
+          <span class="token-balance">Balance: <span id="bal-out">—</span></span>
+        </div>
+        <div class="token-input-row">
+          <input class="token-input" id="swap-out" type="number" placeholder="0.0" readonly style="opacity:0.7;"/>
+          <div class="token-badge tkb" id="badge-out"><div class="token-dot"></div><span id="label-out">TKB</span></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="info-row"><span>Rate</span><span class="info-val" id="swap-rate">—</span></div>
+      <div class="info-row"><span>Fee (0.3%)</span><span class="info-val" id="swap-fee">—</span></div>
+      <div class="info-row"><span>Slippage</span><span class="info-val" id="swap-slippage">—</span></div>
+      <div class="info-row"><span>Min Received</span><span class="info-val" id="swap-min">—</span></div>
+
+      <button class="btn-primary" id="btn-swap" onclick="doSwap()" disabled>Connect Wallet</button>
+    </div>
+
+    <!-- Tx history -->
+    <div class="card">
+      <div class="card-title">Recent Transactions</div>
+      <div class="tx-list" id="tx-list">
+        <div class="empty">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
+          <div style="font-size:var(--text-sm);">No transactions yet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LIQUIDITY TAB ── -->
+  <div id="tab-liquidity" class="tab-content">
+    <!-- Add -->
+    <div class="card">
+      <div class="card-title">Add Liquidity</div>
+      <div class="token-input-wrap">
+        <div class="token-input-header">
+          <span class="token-label">Token A Amount</span>
+          <span class="token-balance">Balance: <span id="add-bal-a" onclick="setMaxAddA()">—</span></span>
+        </div>
+        <div class="token-input-row">
+          <input class="token-input" id="add-a" type="number" min="0" placeholder="0.0" oninput="calcAddB()"/>
+          <div class="token-badge tka"><div class="token-dot"></div>TKA</div>
+        </div>
+      </div>
+      <div class="swap-arrow-wrap">
+        <div style="width:32px;height:32px;border-radius:var(--radius-md);border:1px solid var(--color-border);display:flex;align-items:center;justify-content:center;color:var(--color-text-faint);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        </div>
+      </div>
+      <div class="token-input-wrap">
+        <div class="token-input-header">
+          <span class="token-label">Token B Amount</span>
+          <span class="token-balance">Balance: <span id="add-bal-b">—</span></span>
+        </div>
+        <div class="token-input-row">
+          <input class="token-input" id="add-b" type="number" min="0" placeholder="0.0" oninput="calcAddA()"/>
+          <div class="token-badge tkb"><div class="token-dot"></div>TKB</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="info-row"><span>Pool Share</span><span class="info-val" id="add-share">—</span></div>
+      <div class="info-row"><span>LP Tokens to Mint</span><span class="info-val" id="add-lpt">—</span></div>
+      <div class="info-row"><span>Current Ratio</span><span class="info-val" id="add-ratio">—</span></div>
+      <button class="btn-primary" id="btn-add" onclick="doAddLiquidity()" disabled>Connect Wallet</button>
+    </div>
+
+    <!-- Remove -->
+    <div class="card" style="margin-top:var(--space-4);">
+      <div class="card-title">Remove Liquidity</div>
+      <div class="token-input-wrap">
+        <div class="token-input-header">
+          <span class="token-label">LP Tokens to Burn</span>
+          <span class="token-balance">Your LPT: <span id="rem-bal-lpt" onclick="setMaxRemove()">—</span></span>
+        </div>
+        <div class="token-input-row">
+          <input class="token-input" id="rem-lpt" type="number" min="0" placeholder="0.0" oninput="calcRemove()"/>
+          <div class="token-badge" style="background:var(--color-primary-glow);color:var(--color-primary);border:1px solid rgba(124,106,247,0.2);"><div class="token-dot" style="background:var(--color-primary);"></div>LPT</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="info-row"><span>TKA to Receive</span><span class="info-val tka" id="rem-a">—</span></div>
+      <div class="info-row"><span>TKB to Receive</span><span class="info-val tkb" id="rem-b">—</span></div>
+      <div class="info-row"><span>Pool Share Burned</span><span class="info-val" id="rem-share">—</span></div>
+      <button class="btn-primary" id="btn-remove" onclick="doRemoveLiquidity()" disabled style="background:#c0392b;">Connect Wallet</button>
+    </div>
+
+    <!-- LP Holdings -->
+    <div class="card" style="margin-top:var(--space-4);">
+      <div class="card-title">Your LP Position</div>
+      <div class="info-row"><span>LPT Balance</span><span class="info-val" id="pos-lpt">—</span></div>
+      <div class="info-row"><span>Pool Share</span><span class="info-val" id="pos-share">—</span></div>
+      <div class="info-row"><span>Underlying TKA</span><span class="info-val tka" id="pos-a">—</span></div>
+      <div class="info-row"><span>Underlying TKB</span><span class="info-val tkb" id="pos-b">—</span></div>
+      <div class="lp-bar-wrap"><div class="lp-bar" id="pos-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- ── POOL INFO TAB ── -->
+  <div id="tab-pool" class="tab-content">
+    <div class="card">
+      <div class="card-title">Pool 1 (DEX1)</div>
       <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">TKA Balance</div>
-          <div class="stat-value" id="stat-bal-a">–</div>
+        <div class="stat-box">
+          <div class="stat-label">Reserve TKA</div>
+          <div class="stat-value tka" id="p1-ra">—</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">TKB Balance</div>
-          <div class="stat-value" id="stat-bal-b">–</div>
+        <div class="stat-box">
+          <div class="stat-label">Reserve TKB</div>
+          <div class="stat-value tkb" id="p1-rb">—</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">LPT Balance</div>
-          <div class="stat-value" id="stat-bal-lpt">–</div>
+        <div class="stat-box">
+          <div class="stat-label">Spot Price (A/B)</div>
+          <div class="stat-value price" id="p1-price">—</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Connected</div>
-          <div class="stat-value" style="font-size:var(--text-xs)" id="stat-account">–</div>
+        <div class="stat-box">
+          <div class="stat-label">LPT Supply</div>
+          <div class="stat-value" id="p1-lpt">—</div>
+        </div>
+        <div class="stat-box stat-full">
+          <div class="stat-label">TVL (in TKA units)</div>
+          <div class="stat-value tvl" id="p1-tvl">—</div>
         </div>
       </div>
-      <div style="margin-top:var(--space-4)">
-        <button class="btn btn-secondary" onclick="refreshPoolData()">
-          <i data-lucide="refresh-cw" width="14" height="14"></i>
-          Refresh All Data
-        </button>
+      <button class="btn-secondary" onclick="refreshPool()" style="margin-top:var(--space-4);">↻ Refresh</button>
+    </div>
+
+    <div class="card" style="margin-top:var(--space-4);">
+      <div class="card-title">Pool 2 (DEX2)</div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Reserve TKA</div>
+          <div class="stat-value tka" id="p2-ra">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Reserve TKB</div>
+          <div class="stat-value tkb" id="p2-rb">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Spot Price (A/B)</div>
+          <div class="stat-value price" id="p2-price">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">LPT Supply</div>
+          <div class="stat-value" id="p2-lpt">—</div>
+        </div>
+        <div class="stat-box stat-full">
+          <div class="stat-label">TVL (in TKA units)</div>
+          <div class="stat-value tvl" id="p2-tvl">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:var(--space-4);">
+      <div class="card-title">Your Balances</div>
+      <div class="info-row"><span>TKA</span><span class="info-val tka" id="my-tka">—</span></div>
+      <div class="info-row"><span>TKB</span><span class="info-val tkb" id="my-tkb">—</span></div>
+      <div class="info-row"><span>LPT1</span><span class="info-val" id="my-lpt1">—</span></div>
+      <div class="info-row"><span>LPT2</span><span class="info-val" id="my-lpt2">—</span></div>
+    </div>
+  </div>
+
+  <!-- ── CONTRACTS TAB ── -->
+  <div id="tab-contracts" class="tab-content">
+    <div class="card">
+      <div class="card-title">Deployed Contracts — Sepolia</div>
+      <table class="contract-table">
+        <thead><tr><th>Contract</th><th>Address</th><th>Explorer</th></tr></thead>
+        <tbody id="contract-tbody"></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:var(--space-4);">
+      <div class="card-title">About This DEX</div>
+      <div style="font-size:var(--text-sm);color:var(--color-text-muted);line-height:1.8;display:flex;flex-direction:column;gap:var(--space-3);">
+        <p>Constant-product AMM implementing <strong style="color:var(--color-text);">x × y = k</strong> with a <strong style="color:var(--color-text);">0.3% swap fee</strong>.</p>
+        <p>Liquidity providers deposit TKA + TKB in the current ratio and receive <strong style="color:var(--color-primary);">LP Tokens</strong> proportional to their share. The LP Token contract enforces that only the DEX can mint or burn shares.</p>
+        <p>Two independent pools (DEX1, DEX2) enable arbitrage between different reserve ratios.</p>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════ CONFIG VIEW ═══════════ -->
-  <div id="view-config" class="view">
-    <div class="panel-grid">
-      <div class="card">
-        <p class="card-title"><i data-lucide="settings" width="16" height="16"></i>Contract Addresses</p>
-        <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-5)">
-          Paste your deployed contract addresses below after deploying to a testnet. These are saved in-memory for this session.
-        </p>
-
-        <div class="config-section">
-          <h3>Tokens</h3>
-          <div class="addr-row">
-            <span class="addr-label">TokenA</span>
-            <input class="addr-input" id="cfg-token-a" type="text" placeholder="0x..."/>
-          </div>
-          <div class="addr-row">
-            <span class="addr-label">TokenB</span>
-            <input class="addr-input" id="cfg-token-b" type="text" placeholder="0x..."/>
-          </div>
-        </div>
-
-        <div class="config-section">
-          <h3>DEX</h3>
-          <div class="addr-row">
-            <span class="addr-label">DEX</span>
-            <input class="addr-input" id="cfg-dex" type="text" placeholder="0x..."/>
-          </div>
-          <div class="addr-row">
-            <span class="addr-label">LPToken</span>
-            <input class="addr-input" id="cfg-lpt" type="text" placeholder="0x..."/>
-          </div>
-        </div>
-
-        <div class="config-section">
-          <h3>Arbitrage (optional)</h3>
-          <div class="addr-row">
-            <span class="addr-label">DEX2</span>
-            <input class="addr-input" id="cfg-dex2" type="text" placeholder="0x... (second DEX)"/>
-          </div>
-          <div class="addr-row">
-            <span class="addr-label">Arbitrage</span>
-            <input class="addr-input" id="cfg-arb" type="text" placeholder="0x..."/>
-          </div>
-        </div>
-
-        <button class="btn btn-primary" onclick="saveConfig()">
-          <i data-lucide="save" width="14" height="14"></i>
-          Save & Connect Contracts
-        </button>
-      </div>
-
-      <div class="card">
-        <p class="card-title"><i data-lucide="book-open" width="16" height="16"></i>Quick Reference</p>
-        <div style="font-size:var(--text-sm);color:var(--color-text-muted);line-height:1.8">
-          <p style="margin-bottom:var(--space-3)"><strong style="color:var(--color-text)">Deployment steps:</strong></p>
-          <ol style="padding-left:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2)">
-            <li>Deploy <code style="font-family:var(--font-mono);background:var(--color-surface-offset);padding:1px 4px;border-radius:var(--radius-sm)">TokenA</code> and <code style="font-family:var(--font-mono);background:var(--color-surface-offset);padding:1px 4px;border-radius:var(--radius-sm)">TokenB</code></li>
-            <li>Predict DEX + LPToken addresses using nonce</li>
-            <li>Deploy <code style="font-family:var(--font-mono);background:var(--color-surface-offset);padding:1px 4px;border-radius:var(--radius-sm)">DEX</code>, then <code style="font-family:var(--font-mono);background:var(--color-surface-offset);padding:1px 4px;border-radius:var(--radius-sm)">LPToken</code></li>
-            <li>Verify all 4 contracts on the block explorer</li>
-            <li>Paste addresses in the Setup tab here</li>
-            <li>Connect MetaMask and add initial liquidity</li>
-          </ol>
-          <hr style="margin:var(--space-4) 0"/>
-          <p><strong style="color:var(--color-text)">Supported testnets:</strong></p>
-          <p>Sepolia, Holesky, Mumbai, Amoy, Base Sepolia — any EVM testnet works.</p>
-          <hr style="margin:var(--space-4) 0"/>
-          <p><strong style="color:var(--color-text)">AMM Formula:</strong></p>
-          <p style="font-family:var(--font-mono);background:var(--color-surface-offset);padding:var(--space-3);border-radius:var(--radius-md);margin-top:var(--space-2)">x × y = k</p>
-          <p style="margin-top:var(--space-2)">Fee: 0.3% retained in pool on every swap.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
+</div>
 </main>
+</div>
 
-<!-- ── TOAST CONTAINER ────────────────────────────────────────────── -->
-<div id="toast-container" role="status" aria-live="polite"></div>
+<!-- Toast container -->
+<div id="toast-wrap"></div>
 
-<!-- ══════════════════════════════════════════════════════════════════
-     JAVASCRIPT
-══════════════════════════════════════════════════════════════════════ -->
 <script>
-// ── Dark mode toggle ────────────────────────────────────────────────
+// ── Contract addresses (Sepolia) ────────────────────────────────────
+const ADDR = {
+  TokenA:    "0x561c3cB05dc4bDA5B1427a2b4c6eB432FDFCEF29",
+  TokenB:    "0xA6bfB5792D98e94FdA192D32169D0e0301F00614",
+  DEX1:      "0xa4aeACa2f889DAf42e213f805f2F38D401EBa385",
+  LPToken1:  "0x9fA00128AfB9dc2d14Ab7d913e5ffA7c01441D74",
+  DEX2:      "0xA62ddF8340A7ABdc94941a0bEcd1a5D6C881E72a",
+  LPToken2:  "0x087c76E8D7c42C253E1848E35C19a75c26bE5421",
+  Arbitrage: "0x486DF880f46D5390416c07689327f7eBE874Aaba",
+};
+
+// ── ABIs ────────────────────────────────────────────────────────────
+const ERC20_ABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function approve(address,uint256) returns (bool)",
+  "function allowance(address,address) view returns (uint256)",
+  "function totalSupply() view returns (uint256)",
+  "function transfer(address,uint256) returns (bool)",
+  "function decimals() view returns (uint8)",
+];
+const DEX_ABI = [
+  "function addLiquidity(uint256,uint256) returns (uint256)",
+  "function removeLiquidity(uint256) returns (uint256,uint256)",
+  "function swap(address,uint256,uint256) returns (uint256)",
+  "function getReserves() view returns (uint256,uint256)",
+  "function getSpotPrice() view returns (uint256)",
+  "function reserveA() view returns (uint256)",
+  "function reserveB() view returns (uint256)",
+  "function tokenA() view returns (address)",
+  "function tokenB() view returns (address)",
+  "function lpToken() view returns (address)",
+  "event Swap(address indexed,address indexed,uint256,uint256)",
+  "event LiquidityAdded(address indexed,uint256,uint256,uint256)",
+  "event LiquidityRemoved(address indexed,uint256,uint256,uint256)",
+];
+
+// ── State ────────────────────────────────────────────────────────────
+let provider, signer, userAddress;
+let dex1, dex2, tokenA, tokenB, lpt1, lpt2;
+let swapDir = "AB"; // AB = TKA→TKB, BA = TKB→TKA
+let txHistory = [];
+
+const PRECISION = BigInt("1000000000000000000");
+const fmt = (v, d=4) => {
+  try {
+    const n = parseFloat(ethers.formatUnits(v, 18));
+    return n.toLocaleString('en-US', {maximumFractionDigits: d});
+  } catch { return "—"; }
+};
+const parse = (v) => ethers.parseUnits(String(parseFloat(v)||0), 18);
+
+// ── Theme toggle ─────────────────────────────────────────────────────
 (function(){
   const t = document.querySelector('[data-theme-toggle]');
   const r = document.documentElement;
-  let d = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+  let d = 'dark';
   r.setAttribute('data-theme', d);
-  updateThemeIcon(d);
   t && t.addEventListener('click', () => {
     d = d === 'dark' ? 'light' : 'dark';
     r.setAttribute('data-theme', d);
-    updateThemeIcon(d);
+    t.innerHTML = d === 'dark'
+      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+      : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
   });
-  function updateThemeIcon(theme){
-    if(!t) return;
-    t.innerHTML = theme === 'dark'
-      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
-      : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-  }
 })();
 
-// ── Lucide icons ─────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
-
-// ── Tab switching ─────────────────────────────────────────────────────
+// ── Tab switching ────────────────────────────────────────────────────
 function switchTab(name, btn) {
-  document.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
   btn.classList.add('active');
-  btn.setAttribute('aria-selected','true');
-  document.getElementById('view-' + name).classList.add('active');
-  if (name === 'pool' || name === 'liquidity') refreshPoolData();
+  if (name === 'pool' && signer) refreshPool();
+  if (name === 'liquidity' && signer) refreshBalances();
 }
 
-// ── Toast ─────────────────────────────────────────────────────────────
-function toast(msg, type = 'success', duration = 4000) {
-  const icons = { success: 'check-circle', error: 'x-circle', warning: 'alert-triangle' };
-  const c = document.getElementById('toast-container');
+// ── Toast ────────────────────────────────────────────────────────────
+function toast(msg, type='info', duration=4000) {
+  const w = document.getElementById('toast-wrap');
   const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `<i data-lucide="${icons[type]||'info'}" class="toast-icon" width="16" height="16"></i><span>${msg}</span>`;
-  c.appendChild(el);
-  lucide.createIcons();
-  setTimeout(() => { el.style.animation = 'slideIn .25s ease reverse'; setTimeout(() => el.remove(), 220); }, duration);
+  el.className = 'toast ' + type;
+  el.innerHTML = msg;
+  w.appendChild(el);
+  setTimeout(() => el.remove(), duration);
 }
 
-// ── ABI fragments ─────────────────────────────────────────────────────
-const ERC20_ABI = [
-  'function balanceOf(address) view returns (uint256)',
-  'function approve(address spender, uint256 amount) returns (bool)',
-  'function allowance(address owner, address spender) view returns (uint256)',
-  'function decimals() view returns (uint8)',
-  'function totalSupply() view returns (uint256)',
-];
-const DEX_ABI = [
-  'function getReserves() view returns (uint256 reserveA, uint256 reserveB)',
-  'function getSpotPrice() view returns (uint256)',
-  'function swap(address tokenIn, uint256 amountIn, uint256 amountOutMin) returns (uint256)',
-  'function addLiquidity(uint256 amountA, uint256 amountB) returns (uint256 shares)',
-  'function removeLiquidity(uint256 shares) returns (uint256 amountA, uint256 amountB)',
-  'function tokenA() view returns (address)',
-  'function tokenB() view returns (address)',
-];
-const LPT_ABI = [
-  'function balanceOf(address) view returns (uint256)',
-  'function totalSupply() view returns (uint256)',
-  'function approve(address spender, uint256 amount) returns (bool)',
-];
-
-// ── State ─────────────────────────────────────────────────────────────
-let provider, signer, account;
-let tokenA, tokenB, dex, lpt;
-let addrA, addrB, addrDex, addrLpt;
-let swapDirection = 'AtoB'; // 'AtoB' | 'BtoA'
-const txHistory = [];
-const DECIMALS = BigInt(10 ** 18);
-const FMT = (v, d=4) => {
-  const n = Number(v) / 1e18;
-  if (n === 0) return '0';
-  if (n < 0.0001) return n.toExponential(2);
-  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: d });
-};
-
-// ── ethers v6 — loaded from CDN ───────────────────────────────────────
-const ETHERS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js';
-
-function loadEthers() {
-  return new Promise((resolve, reject) => {
-    if (window.ethers) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = ETHERS_CDN;
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
-// ── Wallet connect ────────────────────────────────────────────────────
+// ── Wallet connect ───────────────────────────────────────────────────
 async function connectWallet() {
+  if (!window.ethereum) { toast('MetaMask not found. Install it at metamask.io', 'error'); return; }
   try {
-    await loadEthers();
-    if (!window.ethereum) { toast('MetaMask not detected. Please install MetaMask.', 'error'); return; }
-    const accts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    account = accts[0];
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
     provider = new ethers.BrowserProvider(window.ethereum);
     signer = await provider.getSigner();
+    userAddress = await signer.getAddress();
 
-    // Update UI
-    const btn = document.getElementById('wallet-btn');
-    btn.classList.add('connected');
-    document.getElementById('wallet-label').textContent = account.slice(0,6) + '…' + account.slice(-4);
+    // Check network — Sepolia = 11155111
+    const net = await provider.getNetwork();
+    if (net.chainId !== 11155111n) {
+      toast('Please switch MetaMask to Sepolia testnet (Chain ID 11155111)', 'error', 6000);
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0xaa36a7' }],
+        });
+      } catch {}
+      return;
+    }
 
-    // Network badge
-    const network = await provider.getNetwork();
-    const networkNames = { 1n:'Ethereum', 11155111n:'Sepolia', 17000n:'Holesky', 80001n:'Mumbai', 80002n:'Amoy', 84532n:'Base Sepolia', 31337n:'Hardhat' };
-    const netName = networkNames[network.chainId] || `Chain ${network.chainId}`;
-    document.getElementById('network-name').textContent = netName;
-    document.getElementById('network-badge').classList.add('show');
+    // Init contracts
+    tokenA = new ethers.Contract(ADDR.TokenA,   ERC20_ABI, signer);
+    tokenB = new ethers.Contract(ADDR.TokenB,   ERC20_ABI, signer);
+    lpt1   = new ethers.Contract(ADDR.LPToken1, ERC20_ABI, signer);
+    lpt2   = new ethers.Contract(ADDR.LPToken2, ERC20_ABI, signer);
+    dex1   = new ethers.Contract(ADDR.DEX1,     DEX_ABI,   signer);
+    dex2   = new ethers.Contract(ADDR.DEX2,     DEX_ABI,   signer);
 
-    // Re-init contracts if addresses saved
-    tryInitContracts();
+    const short = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
+    document.getElementById('btn-wallet').textContent = short;
+    document.getElementById('btn-wallet').classList.add('connected');
+    document.getElementById('btn-swap').disabled = false;
+    document.getElementById('btn-swap').textContent = 'Swap';
+    document.getElementById('btn-add').disabled = false;
+    document.getElementById('btn-add').textContent = 'Add Liquidity';
+    document.getElementById('btn-remove').disabled = false;
+    document.getElementById('btn-remove').textContent = 'Remove Liquidity';
 
-    // Account change listener
-    window.ethereum.on('accountsChanged', (a) => { account = a[0]; connectWallet(); });
+    toast('Wallet connected: ' + short, 'success');
+    await refreshBalances();
+    await refreshPool();
+
+    window.ethereum.on('accountsChanged', () => location.reload());
     window.ethereum.on('chainChanged', () => location.reload());
-
-    toast(`Wallet connected: ${account.slice(0,6)}…${account.slice(-4)}`);
   } catch(e) {
-    toast('Failed to connect wallet: ' + (e.message || e), 'error');
+    toast('Connection failed: ' + (e.message || e), 'error');
   }
 }
 
-// ── Config save ───────────────────────────────────────────────────────
-function saveConfig() {
-  addrA   = document.getElementById('cfg-token-a').value.trim();
-  addrB   = document.getElementById('cfg-token-b').value.trim();
-  addrDex = document.getElementById('cfg-dex').value.trim();
-  addrLpt = document.getElementById('cfg-lpt').value.trim();
-
-  if (!addrA || !addrB || !addrDex || !addrLpt) {
-    toast('Please fill in all 4 contract addresses.', 'warning'); return;
-  }
-  if (![addrA, addrB, addrDex, addrLpt].every(a => /^0x[0-9a-fA-F]{40}$/.test(a))) {
-    toast('One or more addresses look invalid (must be 0x + 40 hex chars).', 'error'); return;
-  }
-  tryInitContracts();
-  toast('Contracts configured! Fetching pool data…');
-  setTimeout(refreshPoolData, 600);
-}
-
-function tryInitContracts() {
-  if (!signer || !addrA || !addrB || !addrDex || !addrLpt) return;
-  tokenA = new ethers.Contract(addrA, ERC20_ABI, signer);
-  tokenB = new ethers.Contract(addrB, ERC20_ABI, signer);
-  dex    = new ethers.Contract(addrDex, DEX_ABI, signer);
-  lpt    = new ethers.Contract(addrLpt, LPT_ABI, signer);
-}
-
-// ── Pool data ─────────────────────────────────────────────────────────
-async function refreshPoolData() {
-  if (!dex) { toast('Configure contract addresses in the Setup tab first.', 'warning'); return; }
+// ── Refresh balances ─────────────────────────────────────────────────
+async function refreshBalances() {
+  if (!signer) return;
   try {
-    const [rA, rB] = await dex.getReserves();
-    const spotRaw  = await dex.getSpotPrice();
-    const lptSupply = await lpt.totalSupply();
-
-    const spot = Number(spotRaw) / 1e18;
-    const tvl  = Number(rA) / 1e18 + (Number(rB) / 1e18 * spot);
-    const k    = (Number(rA) / 1e18) * (Number(rB) / 1e18);
-
-    // Pool stats
-    document.getElementById('stat-reserve-a').textContent = FMT(rA);
-    document.getElementById('stat-reserve-b').textContent = FMT(rB);
-    document.getElementById('stat-spot').textContent      = spot.toFixed(6);
-    document.getElementById('stat-lpt-supply').textContent = FMT(lptSupply);
-    document.getElementById('stat-tvl').textContent        = tvl.toFixed(4);
-    document.getElementById('stat-k').textContent          = k.toExponential(4);
-
-    // Spot price bar in swap panel
-    document.getElementById('spot-price-val').textContent = spot.toFixed(6);
-    document.getElementById('spot-price-bar').style.display = 'flex';
-
-    // User balances
-    if (account) {
-      const [balA, balB, balLpt] = await Promise.all([
-        tokenA.balanceOf(account),
-        tokenB.balanceOf(account),
-        lpt.balanceOf(account),
-      ]);
-      document.getElementById('stat-bal-a').textContent   = FMT(balA);
-      document.getElementById('stat-bal-b').textContent   = FMT(balB);
-      document.getElementById('stat-bal-lpt').textContent = FMT(balLpt);
-      document.getElementById('stat-account').textContent = account.slice(0,6)+'…'+account.slice(-4);
-
-      // LP position
-      document.getElementById('user-lpt').textContent = FMT(balLpt);
-      const totalSupply = lptSupply;
-      const share = totalSupply > 0n ? (Number(balLpt) * 100 / Number(totalSupply)).toFixed(2) + '%' : '0%';
-      document.getElementById('user-share').textContent = share;
-      if (totalSupply > 0n) {
-        const claimA = rA * balLpt / totalSupply;
-        const claimB = rB * balLpt / totalSupply;
-        document.getElementById('user-claim-a').textContent = FMT(claimA);
-        document.getElementById('user-claim-b').textContent = FMT(claimB);
-      }
-    }
-  } catch(e) {
-    toast('Error reading pool data: ' + (e.reason || e.message || e), 'error');
-  }
-}
-
-// ── Swap direction ────────────────────────────────────────────────────
-function flipSwapDirection() {
-  swapDirection = swapDirection === 'AtoB' ? 'BtoA' : 'AtoB';
-  document.getElementById('swap-in-badge').textContent  = swapDirection === 'AtoB' ? 'TKA' : 'TKB';
-  document.getElementById('swap-out-badge').textContent = swapDirection === 'AtoB' ? 'TKB' : 'TKA';
-  document.getElementById('swap-in-amount').value = '';
-  document.getElementById('swap-out-amount').value = '';
-  document.getElementById('swap-breakdown').style.display = 'none';
-  updateSwapPreview();
-}
-
-// ── Swap preview (off-chain simulation) ──────────────────────────────
-async function updateSwapPreview() {
-  const amtStr = document.getElementById('swap-in-amount').value;
-  const btn    = document.getElementById('swap-btn');
-  const btnTxt = document.getElementById('swap-btn-text');
-
-  if (!amtStr || parseFloat(amtStr) <= 0) {
-    document.getElementById('swap-out-amount').value = '';
-    document.getElementById('swap-breakdown').style.display = 'none';
-    btn.disabled = true; btnTxt.textContent = 'Enter an amount'; return;
-  }
-  if (!dex) { btnTxt.textContent = 'Set up contracts first'; btn.disabled = true; return; }
-
-  try {
-    const amtIn = ethers.parseUnits(amtStr, 18);
-    const [rA, rB] = await dex.getReserves();
-    const [rIn, rOut] = swapDirection === 'AtoB' ? [rA, rB] : [rB, rA];
-
-    const fee    = amtIn * 3n / 1000n;
-    const netIn  = amtIn - fee;
-    const amtOut = (rOut * netIn) / (rIn + netIn);
-
-    // Spot price before swap
-    const spotBefore = Number(rIn) / Number(rOut); // in/out ratio
-    const expectedOut = Number(amtIn) * (Number(rOut) / Number(rIn));
-    const actualOut   = Number(amtOut);
-    const slippage    = ((actualOut - expectedOut) / expectedOut) * 100;
-    const priceImpact = ((Number(amtIn) / Number(rIn)) * 100).toFixed(3);
-
-    document.getElementById('swap-out-amount').value = ethers.formatUnits(amtOut, 18).slice(0, 12);
-    document.getElementById('exp-out').textContent      = FMT(amtOut) + (swapDirection === 'AtoB' ? ' TKB' : ' TKA');
-    document.getElementById('exp-impact').textContent   = priceImpact + '%';
-    document.getElementById('exp-fee').textContent      = FMT(fee) + (swapDirection === 'AtoB' ? ' TKA' : ' TKB');
-    document.getElementById('exp-slippage').textContent = slippage.toFixed(4) + '%';
-    document.getElementById('swap-breakdown').style.display = 'block';
-
-    btn.disabled = false;
-    btnTxt.textContent = `Swap ${amtStr} ${swapDirection === 'AtoB' ? 'TKA → TKB' : 'TKB → TKA'}`;
-  } catch(e) {
-    btn.disabled = true; btnTxt.textContent = 'Preview failed';
-  }
-}
-
-// ── Execute swap ──────────────────────────────────────────────────────
-async function executeSwap() {
-  if (!signer || !dex) { toast('Connect wallet and configure contracts first.', 'warning'); return; }
-  const amtStr = document.getElementById('swap-in-amount').value;
-  if (!amtStr || parseFloat(amtStr) <= 0) return;
-
-  const btn = document.getElementById('swap-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Approving…';
-
-  try {
-    const amtIn   = ethers.parseUnits(amtStr, 18);
-    const tokenIn = swapDirection === 'AtoB' ? tokenA : tokenB;
-    const tokenInAddr = swapDirection === 'AtoB' ? addrA : addrB;
-
-    // Check & approve
-    const allowance = await tokenIn.allowance(account, addrDex);
-    if (allowance < amtIn) {
-      const approveTx = await tokenIn.approve(addrDex, ethers.MaxUint256);
-      btn.innerHTML = '<div class="spinner"></div> Waiting for approval…';
-      await approveTx.wait();
-    }
-
-    btn.innerHTML = '<div class="spinner"></div> Swapping…';
-    const tx = await dex.swap(tokenInAddr, amtIn, 0n);
-    const receipt = await tx.wait();
-
-    addTx('swap', `Swap ${amtStr} ${swapDirection === 'AtoB' ? 'TKA → TKB' : 'TKB → TKA'}`, receipt.hash);
-    toast(`Swap confirmed! Tx: ${receipt.hash.slice(0,10)}…`);
-    document.getElementById('swap-in-amount').value = '';
-    document.getElementById('swap-out-amount').value = '';
-    document.getElementById('swap-breakdown').style.display = 'none';
-    refreshPoolData();
-  } catch(e) {
-    toast('Swap failed: ' + (e.reason || e.message || e).slice(0, 80), 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<span id="swap-btn-text">Swap</span>';
-    updateSwapPreview();
-  }
-}
-
-// ── Liquidity preview ─────────────────────────────────────────────────
-async function updateLiqPreview() {
-  const aStr = document.getElementById('liq-a').value;
-  const bStr = document.getElementById('liq-b').value;
-  const btn  = document.getElementById('add-liq-btn');
-  const txtEl = document.getElementById('add-liq-btn-text');
-
-  if (!aStr || !bStr || parseFloat(aStr) <= 0 || parseFloat(bStr) <= 0) {
-    document.getElementById('liq-preview').style.display = 'none';
-    btn.disabled = true; txtEl.textContent = 'Enter amounts'; return;
-  }
-  if (!dex) { btn.disabled = true; txtEl.textContent = 'Set up contracts'; return; }
-
-  try {
-    const amtA = ethers.parseUnits(aStr, 18);
-    const amtB = ethers.parseUnits(bStr, 18);
-    const [rA, rB] = await dex.getReserves();
-    const lptSupply = await lpt.totalSupply();
-
-    let lptOut;
-    if (lptSupply === 0n) {
-      // sqrt(amtA * amtB) for initial deposit — approximate
-      lptOut = BigInt(Math.floor(Math.sqrt(Number(amtA) * Number(amtB))));
-    } else {
-      const sharesA = amtA * lptSupply / rA;
-      const sharesB = amtB * lptSupply / rB;
-      lptOut = sharesA < sharesB ? sharesA : sharesB;
-    }
-    const newSupply = lptSupply + lptOut;
-    const share = newSupply > 0n ? (Number(lptOut) * 100 / Number(newSupply)).toFixed(2) + '%' : '100%';
-
-    document.getElementById('liq-lpt-preview').textContent  = FMT(lptOut) + ' LPT';
-    document.getElementById('liq-share-preview').textContent = share;
-    document.getElementById('liq-preview').style.display = 'block';
-    btn.disabled = false;
-    txtEl.textContent = `Add ${aStr} TKA + ${bStr} TKB`;
-  } catch(e) {
-    btn.disabled = true; txtEl.textContent = 'Preview error';
-  }
-}
-
-async function updateRemovePreview() {
-  const lptStr = document.getElementById('rem-lpt').value;
-  const btn    = document.getElementById('rem-liq-btn');
-  const txtEl  = document.getElementById('rem-liq-btn-text');
-
-  if (!lptStr || parseFloat(lptStr) <= 0) {
-    document.getElementById('rem-preview').style.display = 'none';
-    btn.disabled = true; txtEl.textContent = 'Enter LP token amount'; return;
-  }
-  if (!dex) { btn.disabled = true; return; }
-
-  try {
-    const shares = ethers.parseUnits(lptStr, 18);
-    const [rA, rB] = await dex.getReserves();
-    const supply   = await lpt.totalSupply();
-    const outA = rA * shares / supply;
-    const outB = rB * shares / supply;
-
-    document.getElementById('rem-a-preview').textContent = FMT(outA) + ' TKA';
-    document.getElementById('rem-b-preview').textContent = FMT(outB) + ' TKB';
-    document.getElementById('rem-preview').style.display = 'block';
-    btn.disabled = false;
-    txtEl.textContent = `Burn ${lptStr} LPT`;
-  } catch(e) {
-    btn.disabled = true; txtEl.textContent = 'Preview error';
-  }
-}
-
-// ── Add liquidity ─────────────────────────────────────────────────────
-async function addLiquidity() {
-  if (!signer || !dex) { toast('Connect wallet and configure contracts first.', 'warning'); return; }
-  const aStr = document.getElementById('liq-a').value;
-  const bStr = document.getElementById('liq-b').value;
-  if (!aStr || !bStr) return;
-
-  const btn = document.getElementById('add-liq-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Approving…';
-
-  try {
-    const amtA = ethers.parseUnits(aStr, 18);
-    const amtB = ethers.parseUnits(bStr, 18);
-
-    // Approve both tokens
-    const [allowA, allowB] = await Promise.all([
-      tokenA.allowance(account, addrDex),
-      tokenB.allowance(account, addrDex),
+    const [ba, bb, bl1, bl2] = await Promise.all([
+      tokenA.balanceOf(userAddress),
+      tokenB.balanceOf(userAddress),
+      lpt1.balanceOf(userAddress),
+      lpt2.balanceOf(userAddress),
     ]);
-    if (allowA < amtA) { await (await tokenA.approve(addrDex, ethers.MaxUint256)).wait(); }
-    if (allowB < amtB) { await (await tokenB.approve(addrDex, ethers.MaxUint256)).wait(); }
-
-    btn.innerHTML = '<div class="spinner"></div> Adding liquidity…';
-    const tx = await dex.addLiquidity(amtA, amtB);
-    const receipt = await tx.wait();
-
-    addTx('add', `Add ${aStr} TKA + ${bStr} TKB`, receipt.hash);
-    toast('Liquidity added! LP tokens minted.');
-    document.getElementById('liq-a').value = '';
-    document.getElementById('liq-b').value = '';
-    document.getElementById('liq-preview').style.display = 'none';
-    refreshPoolData();
-  } catch(e) {
-    toast('Add liquidity failed: ' + (e.reason || e.message || e).slice(0,80), 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<span id="add-liq-btn-text">Add Liquidity</span>';
-  }
+    const fmtB = v => fmt(v, 2);
+    document.getElementById('bal-in').textContent  = fmtB(swapDir==='AB'?ba:bb);
+    document.getElementById('bal-out').textContent = fmtB(swapDir==='AB'?bb:ba);
+    document.getElementById('add-bal-a').textContent = fmtB(ba);
+    document.getElementById('add-bal-b').textContent = fmtB(bb);
+    document.getElementById('rem-bal-lpt').textContent = fmtB(bl1);
+    document.getElementById('my-tka').textContent  = fmtB(ba);
+    document.getElementById('my-tkb').textContent  = fmtB(bb);
+    document.getElementById('my-lpt1').textContent = fmtB(bl1);
+    document.getElementById('my-lpt2').textContent = fmtB(bl2);
+    // LP position
+    const lptSupply = await lpt1.totalSupply();
+    if (lptSupply > 0n) {
+      const [rA, rB] = await dex1.getReserves();
+      const share = (bl1 * PRECISION) / lptSupply;
+      const posA  = (rA * bl1) / lptSupply;
+      const posB  = (rB * bl1) / lptSupply;
+      document.getElementById('pos-lpt').textContent   = fmtB(bl1);
+      document.getElementById('pos-share').textContent = (parseFloat(ethers.formatUnits(share, 18))*100).toFixed(4) + '%';
+      document.getElementById('pos-a').textContent     = fmtB(posA);
+      document.getElementById('pos-b').textContent     = fmtB(posB);
+      document.getElementById('pos-bar').style.width   = Math.min(parseFloat(ethers.formatUnits(share,18))*100*5,100) + '%';
+    }
+  } catch(e) { console.error('refreshBalances', e); }
 }
 
-// ── Remove liquidity ──────────────────────────────────────────────────
-async function removeLiquidity() {
-  if (!signer || !dex) { toast('Connect wallet and configure contracts first.', 'warning'); return; }
-  const lptStr = document.getElementById('rem-lpt').value;
-  if (!lptStr) return;
-
-  const btn = document.getElementById('rem-liq-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Approving LPT…';
-
+// ── Refresh pool stats ───────────────────────────────────────────────
+async function refreshPool() {
   try {
-    const shares = ethers.parseUnits(lptStr, 18);
+    for (const [pfx, dex, lpt] of [['p1', dex1, lpt1], ['p2', dex2, lpt2]]) {
+      if (!dex) continue;
+      const [rA, rB] = await dex.getReserves();
+      const spot     = await dex.getSpotPrice();
+      const supply   = await lpt.totalSupply();
+      // TVL = rA + rB * (rA/rB) = 2*rA (since spot = rA/rB, TVL in TKA = rA + rB/spot)
+      const spotF = parseFloat(ethers.formatUnits(spot, 18));
+      const tvlNum = parseFloat(ethers.formatUnits(rA, 18)) + (spotF > 0 ? parseFloat(ethers.formatUnits(rB, 18)) / spotF : 0);
+      document.getElementById(pfx+'-ra').textContent    = fmt(rA);
+      document.getElementById(pfx+'-rb').textContent    = fmt(rB);
+      document.getElementById(pfx+'-price').textContent = spotF.toFixed(6);
+      document.getElementById(pfx+'-lpt').textContent   = fmt(supply);
+      document.getElementById(pfx+'-tvl').textContent   = tvlNum.toLocaleString('en-US',{maximumFractionDigits:2}) + ' TKA';
+    }
+    if (signer) refreshBalances();
+  } catch(e) { console.error('refreshPool', e); }
+}
 
-    // Approve LPToken for DEX to burn
-    const allowLpt = await lpt.allowance(account, addrDex);
-    if (allowLpt < shares) { await (await lpt.approve(addrDex, ethers.MaxUint256)).wait(); }
+// ── Swap direction ───────────────────────────────────────────────────
+function setDir(dir) {
+  swapDir = dir;
+  const isAB = dir === 'AB';
+  document.getElementById('badge-in').className  = 'token-badge ' + (isAB?'tka':'tkb');
+  document.getElementById('badge-out').className = 'token-badge ' + (isAB?'tkb':'tka');
+  document.getElementById('label-in').textContent  = isAB?'TKA':'TKB';
+  document.getElementById('label-out').textContent = isAB?'TKB':'TKA';
+  document.getElementById('dir-ab').style.borderColor = isAB?'var(--color-primary)':'var(--color-border)';
+  document.getElementById('dir-ab').style.color = isAB?'var(--color-primary)':'var(--color-text-muted)';
+  document.getElementById('dir-ab').style.background = isAB?'var(--color-primary-glow)':'transparent';
+  document.getElementById('dir-ba').style.borderColor = !isAB?'var(--color-primary)':'var(--color-border)';
+  document.getElementById('dir-ba').style.color = !isAB?'var(--color-primary)':'var(--color-text-muted)';
+  document.getElementById('dir-ba').style.background = !isAB?'var(--color-primary-glow)':'transparent';
+  document.getElementById('swap-in').value = '';
+  document.getElementById('swap-out').value = '';
+  if (signer) refreshBalances();
+}
+function flipDir() { setDir(swapDir==='AB'?'BA':'AB'); }
 
-    btn.innerHTML = '<div class="spinner"></div> Removing…';
-    const tx = await dex.removeLiquidity(shares);
-    const receipt = await tx.wait();
-
-    addTx('remove', `Remove ${lptStr} LPT`, receipt.hash);
-    toast('Liquidity removed! Tokens returned to your wallet.');
-    document.getElementById('rem-lpt').value = '';
-    document.getElementById('rem-preview').style.display = 'none';
-    refreshPoolData();
-  } catch(e) {
-    toast('Remove liquidity failed: ' + (e.reason || e.message || e).slice(0,80), 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<span id="rem-liq-btn-text">Remove Liquidity</span>';
+function setMaxIn() {
+  if (!signer) return;
+  const el = document.getElementById('bal-in');
+  const v = el.textContent.replace(/,/g,'');
+  if (!isNaN(parseFloat(v))) {
+    document.getElementById('swap-in').value = v;
+    calcSwapOut();
   }
 }
 
-// ── TX history ────────────────────────────────────────────────────────
-function addTx(type, detail, hash) {
-  txHistory.unshift({ type, detail, hash, time: new Date() });
+// ── Calc swap output ─────────────────────────────────────────────────
+async function calcSwapOut() {
+  const amtStr = document.getElementById('swap-in').value;
+  const amt = parseFloat(amtStr);
+  if (!amt || amt <= 0 || !dex1) {
+    ['swap-out','swap-rate','swap-fee','swap-slippage','swap-min'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+      document.getElementById(id).className = 'info-val';
+    });
+    return;
+  }
+  try {
+    const [rA, rB] = await dex1.getReserves();
+    const amtIn = parse(amtStr);
+    const isAB  = swapDir === 'AB';
+    const resIn  = isAB ? rA : rB;
+    const resOut = isAB ? rB : rA;
+    // x*y=k with 0.3% fee
+    const amtInFee = amtIn * 997n;
+    const amtOut   = (resOut * amtInFee) / (resIn * 1000n + amtInFee);
+    const fee      = amtIn * 3n / 1000n;
+    // Slippage
+    const expectedPrice = (resOut * PRECISION) / resIn;
+    const actualPrice   = (amtOut * PRECISION) / amtIn;
+    const slip = ((actualPrice - expectedPrice) * 10000n) / expectedPrice;
+    const slipPct = parseFloat(ethers.formatUnits(slip < 0n ? -slip : slip, 4));
+    const minOut = amtOut * 99n / 100n; // 1% slippage tolerance
+
+    document.getElementById('swap-out').value = parseFloat(ethers.formatUnits(amtOut, 18)).toFixed(6);
+    document.getElementById('swap-rate').textContent = '1 ' + (isAB?'TKA':'TKB') + ' = ' + parseFloat(ethers.formatUnits(expectedPrice,18)).toFixed(6) + ' ' + (isAB?'TKB':'TKA');
+    document.getElementById('swap-fee').textContent = parseFloat(ethers.formatUnits(fee,18)).toFixed(6) + ' ' + (isAB?'TKA':'TKB');
+    const slipEl = document.getElementById('swap-slippage');
+    slipEl.textContent = '-' + slipPct.toFixed(4) + '%';
+    slipEl.className = 'info-val ' + (slipPct < 1 ? 'good' : slipPct < 3 ? 'warn' : 'bad');
+    document.getElementById('swap-min').textContent = parseFloat(ethers.formatUnits(minOut,18)).toFixed(6) + ' ' + (isAB?'TKB':'TKA');
+  } catch(e) { console.error('calcSwapOut', e); }
+}
+
+// ── Execute swap ─────────────────────────────────────────────────────
+async function doSwap() {
+  if (!signer) { toast('Connect your wallet first', 'error'); return; }
+  const amtStr = document.getElementById('swap-in').value;
+  if (!parseFloat(amtStr)) { toast('Enter an amount', 'error'); return; }
+  const btn = document.getElementById('btn-swap');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Approving...';
+  try {
+    const amtIn = parse(amtStr);
+    const isAB  = swapDir === 'AB';
+    const tkIn  = isAB ? tokenA : tokenB;
+    const tAddr = isAB ? ADDR.TokenA : ADDR.TokenB;
+    const [rA, rB] = await dex1.getReserves();
+    const resIn  = isAB ? rA : rB;
+    const resOut = isAB ? rB : rA;
+    const amtInFee = amtIn * 997n;
+    const amtOut   = (resOut * amtInFee) / (resIn * 1000n + amtInFee);
+    const minOut   = amtOut * 99n / 100n;
+
+    // Approve
+    const allowance = await tkIn.allowance(userAddress, ADDR.DEX1);
+    if (allowance < amtIn) {
+      const appTx = await tkIn.approve(ADDR.DEX1, ethers.MaxUint256);
+      await appTx.wait();
+    }
+
+    btn.innerHTML = '<span class="spinner"></span>Swapping...';
+    const tx = await dex1.swap(tAddr, amtIn, minOut);
+    const rc = await tx.wait();
+
+    addTx('Swap', tx.hash, amtStr + ' ' + (isAB?'TKA':'TKB') + ' → ' + (isAB?'TKB':'TKA'));
+    toast('Swap successful! <a href="https://sepolia.etherscan.io/tx/'+tx.hash+'" target="_blank" rel="noopener noreferrer" style="color:var(--color-primary)">View tx ↗</a>', 'success', 6000);
+    document.getElementById('swap-in').value = '';
+    document.getElementById('swap-out').value = '';
+    await refreshBalances();
+    await refreshPool();
+  } catch(e) {
+    toast('Swap failed: ' + (e.reason || e.message || e), 'error', 6000);
+  }
+  btn.disabled = false;
+  btn.textContent = 'Swap';
+}
+
+// ── Add liquidity calc ───────────────────────────────────────────────
+async function calcAddB() {
+  if (!dex1) return;
+  const aStr = document.getElementById('add-a').value;
+  if (!parseFloat(aStr)) return;
+  try {
+    const [rA, rB] = await dex1.getReserves();
+    if (rA > 0n && rB > 0n) {
+      const amtA = parse(aStr);
+      const amtB = (amtA * rB) / rA;
+      document.getElementById('add-b').value = parseFloat(ethers.formatUnits(amtB,18)).toFixed(6);
+      await updateAddInfo(amtA, amtB, rA, rB);
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function calcAddA() {
+  if (!dex1) return;
+  const bStr = document.getElementById('add-b').value;
+  if (!parseFloat(bStr)) return;
+  try {
+    const [rA, rB] = await dex1.getReserves();
+    if (rA > 0n && rB > 0n) {
+      const amtB = parse(bStr);
+      const amtA = (amtB * rA) / rB;
+      document.getElementById('add-a').value = parseFloat(ethers.formatUnits(amtA,18)).toFixed(6);
+      await updateAddInfo(amtA, amtB, rA, rB);
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function updateAddInfo(amtA, amtB, rA, rB) {
+  const supply = await lpt1.totalSupply();
+  let shares;
+  if (supply === 0n) {
+    const sqrt = (y) => { if (y > 3n) { let z=y,x=y/2n+1n; while(x<z){z=x;x=(y/x+x)/2n;} return z; } return y>0n?1n:0n; };
+    shares = sqrt(amtA * amtB);
+  } else {
+    shares = (amtA * supply) / rA;
+  }
+  const newSupply = supply + shares;
+  const share = newSupply > 0n ? (shares * 10000n) / newSupply : 0n;
+  const ratio = rA > 0n && rB > 0n ? parseFloat(ethers.formatUnits(rA,18)) / parseFloat(ethers.formatUnits(rB,18)) : null;
+  document.getElementById('add-lpt').textContent   = fmt(shares, 6);
+  document.getElementById('add-share').textContent = (Number(share)/100).toFixed(4) + '%';
+  document.getElementById('add-ratio').textContent = ratio ? ratio.toFixed(6) + ' TKA/TKB' : 'First deposit';
+}
+
+function setMaxAddA() {
+  if (!signer) return;
+  const v = document.getElementById('add-bal-a').textContent.replace(/,/g,'');
+  if (!isNaN(parseFloat(v))) { document.getElementById('add-a').value = v; calcAddB(); }
+}
+
+async function doAddLiquidity() {
+  if (!signer) { toast('Connect your wallet first','error'); return; }
+  const aStr = document.getElementById('add-a').value;
+  const bStr = document.getElementById('add-b').value;
+  if (!parseFloat(aStr) || !parseFloat(bStr)) { toast('Enter amounts','error'); return; }
+  const btn = document.getElementById('btn-add');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Approving TKA...';
+  try {
+    const amtA = parse(aStr), amtB = parse(bStr);
+    const allowA = await tokenA.allowance(userAddress, ADDR.DEX1);
+    if (allowA < amtA) { await (await tokenA.approve(ADDR.DEX1, ethers.MaxUint256)).wait(); }
+    btn.innerHTML = '<span class="spinner"></span>Approving TKB...';
+    const allowB = await tokenB.allowance(userAddress, ADDR.DEX1);
+    if (allowB < amtB) { await (await tokenB.approve(ADDR.DEX1, ethers.MaxUint256)).wait(); }
+    btn.innerHTML = '<span class="spinner"></span>Adding liquidity...';
+    const tx = await dex1.addLiquidity(amtA, amtB);
+    await tx.wait();
+    addTx('Add LP', tx.hash, aStr + ' TKA + ' + bStr + ' TKB');
+    toast('Liquidity added! LP tokens minted. <a href="https://sepolia.etherscan.io/tx/'+tx.hash+'" target="_blank" rel="noopener noreferrer" style="color:var(--color-primary)">View tx ↗</a>', 'success', 6000);
+    document.getElementById('add-a').value = '';
+    document.getElementById('add-b').value = '';
+    await refreshBalances(); await refreshPool();
+  } catch(e) { toast('Failed: '+(e.reason||e.message||e),'error',6000); }
+  btn.disabled = false; btn.textContent = 'Add Liquidity';
+}
+
+// ── Remove liquidity ─────────────────────────────────────────────────
+async function calcRemove() {
+  if (!dex1) return;
+  const lptStr = document.getElementById('rem-lpt').value;
+  if (!parseFloat(lptStr)) return;
+  try {
+    const [rA, rB] = await dex1.getReserves();
+    const supply   = await lpt1.totalSupply();
+    const shares   = parse(lptStr);
+    if (supply === 0n) return;
+    const outA  = (rA * shares) / supply;
+    const outB  = (rB * shares) / supply;
+    const share = (shares * 10000n) / supply;
+    document.getElementById('rem-a').textContent     = fmt(outA,6) + ' TKA';
+    document.getElementById('rem-b').textContent     = fmt(outB,6) + ' TKB';
+    document.getElementById('rem-share').textContent = (Number(share)/100).toFixed(4) + '%';
+  } catch(e) { console.error(e); }
+}
+
+function setMaxRemove() {
+  if (!signer) return;
+  const v = document.getElementById('rem-bal-lpt').textContent.replace(/,/g,'');
+  if (!isNaN(parseFloat(v))) { document.getElementById('rem-lpt').value = v; calcRemove(); }
+}
+
+async function doRemoveLiquidity() {
+  if (!signer) { toast('Connect your wallet first','error'); return; }
+  const lptStr = document.getElementById('rem-lpt').value;
+  if (!parseFloat(lptStr)) { toast('Enter LPT amount','error'); return; }
+  const btn = document.getElementById('btn-remove');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Removing...';
+  try {
+    const shares = parse(lptStr);
+    const tx = await dex1.removeLiquidity(shares);
+    await tx.wait();
+    addTx('Remove LP', tx.hash, lptStr + ' LPT burned');
+    toast('Liquidity removed! Tokens returned. <a href="https://sepolia.etherscan.io/tx/'+tx.hash+'" target="_blank" rel="noopener noreferrer" style="color:var(--color-primary)">View tx ↗</a>', 'success', 6000);
+    document.getElementById('rem-lpt').value = '';
+    await refreshBalances(); await refreshPool();
+  } catch(e) { toast('Failed: '+(e.reason||e.message||e),'error',6000); }
+  btn.disabled = false; btn.textContent = 'Remove Liquidity';
+}
+
+// ── Tx history ───────────────────────────────────────────────────────
+function addTx(type, hash, detail) {
+  txHistory.unshift({ type, hash, detail });
+  if (txHistory.length > 10) txHistory.pop();
   renderTxList();
 }
-
 function renderTxList() {
-  const list = document.getElementById('tx-list');
-  if (txHistory.length === 0) {
-    list.innerHTML = `<div class="empty"><i data-lucide="layers" width="32" height="32"></i><p>Your transactions will appear here</p></div>`;
-    lucide.createIcons(); return;
-  }
-  list.innerHTML = txHistory.slice(0, 15).map(tx => {
-    const timeStr = tx.time.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
-    const labels  = { swap:'Swap', add:'Add', remove:'Remove' };
-    const hashLink = tx.hash ? `<a href="#" style="color:var(--color-primary);text-decoration:none" title="${tx.hash}">${tx.hash.slice(0,10)}…</a>` : '';
-    return `<div class="tx-item">
-      <span class="tx-badge ${tx.type}">${labels[tx.type]}</span>
-      <span class="tx-detail">${tx.detail} ${hashLink}</span>
-      <span class="tx-time">${timeStr}</span>
-    </div>`;
-  }).join('');
+  const el = document.getElementById('tx-list');
+  if (txHistory.length === 0) return;
+  el.innerHTML = txHistory.map(tx => `
+    <div class="tx-item">
+      <div>
+        <div class="tx-type">${tx.type}</div>
+        <div style="color:var(--color-text-muted);font-size:var(--text-xs);">${tx.detail}</div>
+      </div>
+      <a class="tx-link" href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" rel="noopener noreferrer" style="font-size:var(--text-xs);">View ↗</a>
+    </div>`).join('');
 }
+
+// ── Contracts table ──────────────────────────────────────────────────
+(function renderContracts() {
+  const rows = [
+    ['TokenA',    ADDR.TokenA],
+    ['TokenB',    ADDR.TokenB],
+    ['DEX1',      ADDR.DEX1],
+    ['LPToken1',  ADDR.LPToken1],
+    ['DEX2',      ADDR.DEX2],
+    ['LPToken2',  ADDR.LPToken2],
+    ['Arbitrage', ADDR.Arbitrage],
+  ];
+  document.getElementById('contract-tbody').innerHTML = rows.map(([name,addr]) => `
+    <tr>
+      <td>${name}</td>
+      <td style="font-size:10px;">${addr.slice(0,10)}...${addr.slice(-8)}</td>
+      <td><a href="https://sepolia.etherscan.io/address/${addr}" target="_blank" rel="noopener noreferrer">View ↗</a></td>
+    </tr>`).join('');
+})();
+
+// ── Auto-refresh pool every 30s ──────────────────────────────────────
+setInterval(() => { if (signer) refreshPool(); }, 30000);
 </script>
 </body>
 </html>
